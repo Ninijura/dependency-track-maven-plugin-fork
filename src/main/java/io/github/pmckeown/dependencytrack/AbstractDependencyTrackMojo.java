@@ -1,5 +1,6 @@
 package io.github.pmckeown.dependencytrack;
 
+import io.github.pmckeown.util.GitInfoLoader;
 import io.github.pmckeown.util.Logger;
 import kong.unirest.Unirest;
 import kong.unirest.jackson.JacksonObjectMapper;
@@ -9,6 +10,8 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import java.io.IOException;
 
 import static io.github.pmckeown.dependencytrack.ObjectMapperFactory.relaxedObjectMapper;
 import static kong.unirest.HeaderNames.ACCEPT;
@@ -43,6 +46,12 @@ public abstract class AbstractDependencyTrackMojo extends AbstractMojo {
 
     @Parameter(required = true, property = "dependency-track.apiKey")
     private String apiKey;
+
+    @Parameter(defaultValue = "false", property = "dependency-track.useGitBranchAsVersion")
+    private boolean useGitBranchAsVersion;
+
+    @Parameter(defaultValue = "${project.basedir}/.git", property = "dependency-track.dotGitDirectory")
+    private String dotGitDirectory;
 
     @Parameter(defaultValue = "false", property = "dependency-track.failOnError")
     private boolean failOnError;
@@ -86,10 +95,15 @@ public abstract class AbstractDependencyTrackMojo extends AbstractMojo {
         // Set up Mojo environment
         this.logger.setLog(getLog());
         this.commonConfig.setProjectName(projectName);
-        this.commonConfig.setProjectVersion(projectVersion);
         this.commonConfig.setDependencyTrackBaseUrl(dependencyTrackBaseUrl);
         this.commonConfig.setApiKey(apiKey);
         this.commonConfig.setPollingConfig(this.pollingConfig != null ? this.pollingConfig : PollingConfig.defaults());
+        try {
+            this.commonConfig.setProjectVersion(this.useGitBranchAsVersion ? GitInfoLoader.getGitBranch(dotGitDirectory) : this.projectVersion);
+        } catch (IOException e) {
+            throw new MojoExecutionException(String.format("Something went wrong trying to read the HEAD file at %s. " +
+                    "Please make sure that this is the correct .git directory.",dotGitDirectory), e);
+        }
 
         // Configure Unirest with additional user-supplied configuration
         configureUnirest();
