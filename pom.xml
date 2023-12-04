@@ -5,7 +5,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-j    <groupId>io.github.pmckeown</groupId>
+    <groupId>io.github.pmckeown</groupId>
     <artifactId>dependency-track-maven-plugin-saab-fork</artifactId>
     <version>1.7.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
@@ -220,7 +220,11 @@ j    <groupId>io.github.pmckeown</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
     </dependencies>
 
     <build>

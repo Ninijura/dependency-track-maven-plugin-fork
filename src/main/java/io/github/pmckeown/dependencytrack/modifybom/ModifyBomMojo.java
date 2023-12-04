@@ -20,19 +20,16 @@ public class ModifyBomMojo extends AbstractDependencyTrackMojo {
     @Parameter(required = true)
     private SbomComponent[] components;
 
+    private ModifyBomAction modifyBomAction;
+
     @Inject
-    protected ModifyBomMojo(CommonConfig commonConfig, Logger logger) {
+    protected ModifyBomMojo(ModifyBomAction modifyBomAction, CommonConfig commonConfig, Logger logger) {
         super(commonConfig, logger);
+        this.modifyBomAction = modifyBomAction;
     }
 
     @Override
     protected void performAction() throws MojoExecutionException, MojoFailureException {
-        /*
-        Should:
-
-        - get bom
-        - add all components to the components array
-        - write to file
-         */
+        modifyBomAction.addComponents(bomLocation,components);
     }
 }

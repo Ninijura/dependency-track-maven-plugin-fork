@@ -1,24 +1,23 @@
 package io.github.pmckeown.dependencytrack.bom;
 
-import com.google.gson.annotations.SerializedName;
+import org.json.JSONObject;
 
 public class SbomComponent {
 
     private String group;
     private String name;
     private String version;
-    private String scope;
-    private String purl;
+    private String cpe;
     private String type;
-    @SerializedName("bom-ref")
     private String bomRef;
 
-    public SbomComponent(String group, String name, String version, String scope, String purl, String type, String bomRef) {
+    public SbomComponent(){}
+
+    public SbomComponent(String group, String name, String version, String scope, String cpe, String type, String bomRef) {
         this.group = group;
         this.name = name;
         this.version = version;
-        this.scope = scope;
-        this.purl = purl;
+        this.cpe = cpe;
         this.type = type;
         this.bomRef = bomRef;
     }
@@ -47,20 +46,12 @@ public class SbomComponent {
         this.version = version;
     }
 
-    public String getScope() {
-        return scope;
+    public String getCpe() {
+        return cpe;
     }
 
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
-    public String getPurl() {
-        return purl;
-    }
-
-    public void setPurl(String purl) {
-        this.purl = purl;
+    public void setCpe(String cpe) {
+        this.cpe = cpe;
     }
 
     public String getType() {
@@ -77,5 +68,17 @@ public class SbomComponent {
 
     public void setBomRef(String bomRef) {
         this.bomRef = bomRef;
+    }
+
+    public JSONObject serialize(){
+        JSONObject thisJSON = new JSONObject();
+        thisJSON.put("name", name);
+        thisJSON.put("group", group);
+        thisJSON.put("version", version);
+        thisJSON.put("cpe", cpe);
+        thisJSON.put("type", type);
+        thisJSON.put("bom-ref", bomRef);
+
+        return thisJSON;
     }
 }
