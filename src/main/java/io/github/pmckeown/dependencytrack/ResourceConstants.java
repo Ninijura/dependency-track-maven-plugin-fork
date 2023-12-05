@@ -15,6 +15,9 @@ public final class ResourceConstants {
     public static final String V1_METRICS_PROJECT_UUID_CURRENT = "/api/v1/metrics/project/{uuid}/current";
     public static final String V1_METRICS_PROJECT_UUID_REFRESH = "/api/v1/metrics/project/{uuid}/refresh";
     public static final String V1_POLICY_VIOLATION_PROJECT_UUID = "/api/v1/violation/project/{uuid}";
+    public static final String V1_PROJECT_LOOKUP = "/api/v1/project/lookup";
+    public static final String V1_VEX_GET = "/api/v1/vex/cyclonedx/project/{uuid}";
+    public static final String V1_VEX = "/api/v1/vex";
 
     private ResourceConstants() {
         // Constants file

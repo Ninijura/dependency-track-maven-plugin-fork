@@ -15,6 +15,8 @@ public class CommonConfig {
     private String dependencyTrackBaseUrl;
     private String apiKey;
     private PollingConfig pollingConfig;
+    private String vexParentName;
+    private String vexParentVersion;
 
     public CommonConfig() {
         // For dependency injection
@@ -60,4 +62,19 @@ public class CommonConfig {
         this.pollingConfig = pollingConfig;
     }
 
+    public String getVexParentName() {
+        return vexParentName;
+    }
+
+    public void setVexParentName(String vexParentName) {
+        this.vexParentName = vexParentName;
+    }
+
+    public String getVexParentVersion() {
+        return vexParentVersion;
+    }
+
+    public void setVexParentVersion(String vexParentVersion) {
+        this.vexParentVersion = vexParentVersion;
+    }
 }
