@@ -4,11 +4,12 @@ import io.github.pmckeown.dependencytrack.CommonConfig;
 import io.github.pmckeown.util.Logger;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import java.util.Base64;
 
 import static io.github.pmckeown.dependencytrack.ResourceConstants.*;
 import static kong.unirest.HeaderNames.ACCEPT;
@@ -29,14 +30,14 @@ public class ApplyVEXAction {
     public ApplyVEXAction(CommonConfig commonConfig, Logger logger) {
         this.commonConfig = commonConfig;
         this.logger = logger;
+    }
+
+    public void performAction(){
         toProjectName = commonConfig.getProjectName();
         toProjectVersion = commonConfig.getProjectVersion();
         fromProjectName = commonConfig.getVexParentName();
         fromProjectVersion = commonConfig.getVexParentVersion();
-    }
-
-    public boolean performAction(){
-        return (getVEXFromProject() && postVEXToProject());
+        if (getVEXFromProject()) postVEXToProject();
     }
 
     private boolean getVEXFromProject() {
@@ -44,6 +45,8 @@ public class ApplyVEXAction {
         UUID vexParentUUID = getUUIDForProject(fromProjectName, fromProjectVersion);
         if (!vexParentUUID.isUuidSet()) return false;
 
+        logger.info("Requesting VEX. Name: %s, Version: %s, UUID: %s",
+                fromProjectName, fromProjectVersion, vexParentUUID.getUuid());
         requestVex(vexParentUUID);
         return !vex.isBlank();
     }
@@ -65,25 +68,37 @@ public class ApplyVEXAction {
                 .ifSuccess(response -> vex = response.getBody());
     }
 
-    private boolean postVEXToProject() {
+    private void postVEXToProject() {
+        logger.info("Posting VEX to project name: %s, version: %s",
+                toProjectName, toProjectVersion);
 
-        Unirest.post(commonConfig.getDependencyTrackBaseUrl() + V1_VEX)
+        String address = commonConfig.getDependencyTrackBaseUrl() + V1_VEX;
+
+        JSONObject jsonVex = new JSONObject();
+        jsonVex.put("projectName", toProjectName);
+        jsonVex.put("projectVersion", toProjectVersion);
+        jsonVex.put("vex", Base64.getEncoder().encodeToString(vex.getBytes()));
+
+        Unirest.put(address)
                 .header(ACCEPT, "application/json")
                 .header("X-Api-Key", commonConfig.getApiKey())
-                .header(CONTENT_TYPE, "multipart/form-data")
-                .field("name", toProjectName)
-                .field("version", toProjectVersion)
-                .field("vex",vex);
-
-        return false;
+                .header(CONTENT_TYPE, "application/json")
+                .body(jsonVex.toString())
+                .asString().ifFailure(httpStringResponse -> {
+                    logger.info("Uploading the VEX failed: ");
+                    logger.info("Code: %d %s: %s"
+                            , httpStringResponse.getStatus()
+                            , httpStringResponse.getStatusText()
+                            , httpStringResponse.getBody());
+                    logger.info("%s",httpStringResponse.getRequestSummary().asString());
+                });
     }
 
     private UUID getUUIDForProject(String projectName, String projectVersion) {
         UUID uuid = new UUID();
-
-        Unirest.get(String.format(commonConfig.getDependencyTrackBaseUrl(),
-                        V1_PROJECT_LOOKUP,
-                        "?name=%s&version=%s", projectName, projectVersion))
+        Unirest.get(commonConfig.getDependencyTrackBaseUrl() +
+                        V1_PROJECT_LOOKUP +
+                        String.format("?name=%s&version=%s", projectName, projectVersion))
                 .header(ACCEPT, "application/json")
                 .header("X-Api-Key", commonConfig.getApiKey())
                 .asString()
@@ -100,18 +115,10 @@ public class ApplyVEXAction {
     }
 
     private void uuidExtractor(HttpResponse<String> stringHttpResponse, UUID uuid) {
-
         String response = stringHttpResponse.getBody();
 
         JSONObject responseBody = new JSONObject(response);
-        JSONArray versionsArray = responseBody.getJSONArray("versions");
-
-        for (Object obj : versionsArray) {
-            if (obj instanceof JSONObject
-                    &&  ((JSONObject) obj).getString("version").equals(toProjectVersion)) {
-                uuid.setUuid(((JSONObject) obj).getString("uuid"));
-            }
-        }
+        uuid.setUuid(responseBody.getString("uuid"));
     }
 
 }

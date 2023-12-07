@@ -53,12 +53,6 @@ public abstract class AbstractDependencyTrackMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.basedir}/.git", property = "dependency-track.dotGitDirectory")
     private String dotGitDirectory;
 
-    @Parameter(defaultValue = "${project.artifactId}")
-    private String vexParentName;
-
-    @Parameter(defaultValue = "master")
-    private String vexParentVersion;
-
     @Parameter(defaultValue = "false", property = "dependency-track.failOnError")
     private boolean failOnError;
 
@@ -110,8 +104,6 @@ public abstract class AbstractDependencyTrackMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("Something went wrong trying to read the HEAD file at %s. " +
                     "Please make sure that this is the correct .git directory.",dotGitDirectory), e);
         }
-        this.commonConfig.setVexParentName(vexParentName);
-        this.commonConfig.setVexParentVersion(vexParentVersion);
 
         // Configure Unirest with additional user-supplied configuration
         configureUnirest();
